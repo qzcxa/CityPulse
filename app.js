@@ -1,3 +1,279 @@
+/* ===== ДЕМО-РЕЖИМ: сервер не потрібен =====
+   Усі дані живуть у браузері (localStorage). Кнопки, форми, карта, фільтри,
+   зміна статусів (ключ адміна: demo) працюють як на справжньому сайті. */
+(() => {
+  const KEY = "cp-demo-v2";
+  const ADMIN = "demo";
+  const DAY = 864e5;
+  const svg = (emoji, a, b) =>
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="640" height="420" fill="url(#g)"/><text x="320" y="250" font-size="150" text-anchor="middle">${emoji}</text></svg>`,
+    );
+  const seed = () => {
+    const n = Date.now();
+    const A = (i, title, addr, cat, st, pr, lat, lng, ago, desc, photo) => ({
+      id: "demo" + i,
+      title,
+      addr,
+      cat,
+      st,
+      pr,
+      lat,
+      lng,
+      t: n - ago * DAY,
+      desc: desc || "",
+      hasPhoto: !!photo,
+      photo: photo || "",
+    });
+    return [
+      A(
+        1,
+        "Яма на проїжджій частині",
+        "вул. Хрещатик, 22",
+        "road",
+        "new",
+        "high",
+        50.4474,
+        30.5226,
+        0.3,
+        "Глибока яма на смузі руху, водії об'їжджають її по зустрічній.",
+        svg("🕳️", "#64748b", "#334155"),
+      ),
+      A(
+        2,
+        "Не працює ліхтар",
+        "вул. Саксаганського, 41",
+        "light",
+        "work",
+        "mid",
+        50.4387,
+        30.508,
+        1,
+        "Вечорами у дворі повністю темно.",
+      ),
+      A(
+        3,
+        "Переповнений контейнер",
+        "вул. Лук’янівська, 15",
+        "trash",
+        "new",
+        "mid",
+        50.456,
+        30.504,
+        2,
+        "Сміття не вивозили кілька днів.",
+      ),
+      A(
+        4,
+        "Зруйнований тротуар",
+        "просп. Перемоги, 30",
+        "walk",
+        "work",
+        "high",
+        50.454,
+        30.462,
+        3,
+        "Плитка провалилась, складно пройти з візком.",
+        svg("🚶", "#f59e0b", "#b45309"),
+      ),
+      A(
+        5,
+        "Зламана лавка в парку",
+        "Маріїнський парк",
+        "pub",
+        "done",
+        "low",
+        50.443,
+        30.537,
+        9,
+      ),
+      A(
+        6,
+        "Провалля біля люка",
+        "вул. Січових Стрільців, 8",
+        "road",
+        "work",
+        "high",
+        50.4565,
+        30.496,
+        14,
+        "Асфальт просів навколо каналізаційного люка.",
+      ),
+      A(
+        7,
+        "Не світиться пішохідний перехід",
+        "бульв. Лесі Українки, 20",
+        "light",
+        "new",
+        "high",
+        50.431,
+        30.537,
+        35,
+      ),
+      A(
+        8,
+        "Стихійне сміттєзвалище",
+        "вул. Набережно-Рибальська, 3",
+        "trash",
+        "done",
+        "mid",
+        50.465,
+        30.525,
+        62,
+      ),
+      A(
+        9,
+        "Розбитий бордюр",
+        "вул. Антоновича, 70",
+        "road",
+        "done",
+        "low",
+        50.422,
+        30.516,
+        95,
+      ),
+      A(
+        10,
+        "Небезпечне дерево біля дороги",
+        "вул. Володимирська, 50",
+        "other",
+        "new",
+        "mid",
+        50.444,
+        30.513,
+        130,
+        "Суха гілка нависає над тротуаром.",
+      ),
+      A(
+        11,
+        "Яма біля центрального ринку",
+        "вул. Руська, 12, Чернівці",
+        "road",
+        "new",
+        "high",
+        48.2915,
+        25.9358,
+        1,
+        "Яма пошкоджує колеса авто.",
+        svg("🕳️", "#6b7280", "#1f2937"),
+      ),
+      A(
+        12,
+        "Не горить ліхтар біля парку",
+        "Центральна площа, Чернівці",
+        "light",
+        "work",
+        "mid",
+        48.2921,
+        25.9352,
+        4,
+      ),
+      A(
+        13,
+        "Переповнені смітники",
+        "вул. Ольги Кобилянської, 30, Чернівці",
+        "trash",
+        "new",
+        "mid",
+        48.2899,
+        25.9336,
+        6,
+      ),
+      A(
+        14,
+        "Зламана лавка",
+        "парк Жовтневий, Чернівці",
+        "pub",
+        "done",
+        "low",
+        48.2876,
+        25.9501,
+        20,
+      ),
+    ];
+  };
+  const read = () => {
+    try {
+      const v = JSON.parse(localStorage.getItem(KEY));
+      if (Array.isArray(v)) return v;
+    } catch (e) {}
+    const s = seed();
+    write(s);
+    return s;
+  };
+  const write = (v) => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(v));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+  const reply = (data, status = 200) =>
+    Promise.resolve(
+      new Response(data == null ? null : JSON.stringify(data), {
+        status,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+  const realFetch = window.fetch.bind(window);
+  window.fetch = (url, opt = {}) => {
+    const u = String(url);
+    if (!u.includes("/api/")) return realFetch(url, opt);
+    const adm = (opt.headers || {})["x-admin-key"] === ADMIN;
+    const method = (opt.method || "GET").toUpperCase();
+    if (u.endsWith("/api/admin/check")) return reply(null, adm ? 204 : 401);
+    if (u.endsWith("/api/reports") && method === "GET") return reply(read());
+    if (u.endsWith("/api/reports") && method === "POST") {
+      const b = JSON.parse(opt.body || "{}");
+      if (!b.title) return reply({ error: "Вкажіть, що сталося." }, 400);
+      const rec = {
+        id: "u" + Date.now(),
+        title: b.title,
+        addr: b.addr || "",
+        cat: b.cat,
+        pr: b.pr,
+        st: "new",
+        lat: b.lat,
+        lng: b.lng,
+        t: Date.now(),
+        desc: b.desc || "",
+        hasPhoto: !!b.photo,
+        photo: b.photo || "",
+      };
+      const list = read();
+      list.unshift(rec);
+      if (!write(list) && rec.photo) {
+        rec.photo = "";
+        rec.hasPhoto = false;
+        write(list);
+      }
+      return reply(rec, 201);
+    }
+    const m = u.match(/\/api\/reports\/([^/]+)\/status$/);
+    if (m && method === "PATCH") {
+      if (!adm) return reply({ error: "Потрібен ключ адміністратора." }, 401);
+      const st = JSON.parse(opt.body || "{}").st;
+      const list = read();
+      const r = list.find((x) => x.id === m[1]);
+      if (!r) return reply({ error: "Не знайдено." }, 404);
+      r.st = st;
+      write(list);
+      return reply({ ok: true });
+    }
+    return reply({ error: "Не підтримується в демо." }, 404);
+  };
+  window.addEventListener("DOMContentLoaded", () => {
+    const f = document.querySelector(".foot");
+    if (f)
+      f.insertAdjacentHTML(
+        "beforeend",
+        "<br><small>Демо-режим · ключ адміна: <b>demo</b></small>",
+      );
+  });
+})();
+
 const CATS = {
   road: ["Дороги", "🕳️"],
   light: ["Освітлення", "💡"],
@@ -51,7 +327,7 @@ async function load() {
       render();
     }
     sync(
-      "Дані спільні для всіх користувачів. Оновлено " +
+      "Демо-режим: дані зберігаються у вашому браузері. Оновлено " +
         new Date().toLocaleTimeString("uk-UA", {
           hour: "2-digit",
           minute: "2-digit",
@@ -72,7 +348,7 @@ const pill = (s) =>
   `<span class="pill" style="--c:${ST[s][1]}">${ST[s][0]}</span>`;
 const photoH = (r) =>
   r.hasPhoto
-    ? `<a href="${API}/api/reports/${r.id}/photo" target="_blank" rel="noopener"><img class="ph" loading="lazy" alt="Фото проблеми" src="${API}/api/reports/${r.id}/photo"></a>`
+    ? `<img class="ph" loading="lazy" alt="Фото проблеми" src="${esc(r.photo || "")}">`
     : "";
 const prc = (p) =>
   `<span class="${p === "high" ? "high" : ""}">${PR[p]}</span>`;
